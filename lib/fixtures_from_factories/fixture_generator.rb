@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "factory_bot"
+require "faker"
+
 module FixturesFromFactories
   class FixtureGenerator
     attr_reader :model_cache, :name_config, :database_name, :excluded_tables, :output_path
@@ -7,7 +10,7 @@ module FixturesFromFactories
     def initialize(
       database_name,
       output_path,
-      excluded_tables = %w[schema_migrations spatial_ref_sys ar_internal_metadata] # TODO: move to config
+      excluded_tables = FixturesFromFactories.configuration.excluded_tables
     )
       @model_cache = {}
       @name_config = {}
@@ -84,6 +87,20 @@ module FixturesFromFactories
       model_cache.merge!(Hash[item_name, cached_record(record)]) do |key|
         raise "Duplicate key: #{key}"
       end
+    end
+
+    def add_collection(collection, collection_name: nil)
+      c_name = collection_name || collection.name.underscore
+      added_count = 0
+      collection.find_in_batches do |group|
+        group.each do |model|
+          id = block_given? ? yield(model) : model.id.to_s
+          name = "#{c_name}_#{id}".to_sym
+          add_record(name, model)
+          added_count += 1
+        end
+      end
+      added_count
     end
 
     def make_fake_time(from, to)

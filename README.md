@@ -36,13 +36,72 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
-TODO: Write usage instructions here
+Write a script (rake task or otherwise) which calls `GenerateSet` and gives it the name of a class which exposes
+a "generate" method. This class should be a subclass of `FixturesFromFactories::BaseBuilder` and should
+
+```ruby
+::GenerateSet.call(
+  DemoFixturesBuilder, # The custom class which will setup the data
+  fixtures_path, # path to the directory where the fixtures will be written, eg Rails.root.join("demos", "fixtures")
+  time_cop_now: [Time.zone.now], # The time to freeze "now" to
+  database_name: "demo_fixtures_db", # The name of the database to use
+  faker_seed: 42, # A seed value for faker to ensure consistent data between runs
+  options: { # Any options to pass to the data builder class, available as `options` in the builder class
+    # ...
+  }
+)
+```
+
+The `DemoFixturesBuilder` class should look something like this:
+
+```ruby
+class DemoFixturesBuilder < FixturesFromFactories::BaseBuilder
+  def generate
+    # Add data that was seeded (already in newly created database) to fixtures
+    # Here the Category records will be added with names "category_<id>"
+    generator.add_collection(Category.all)
+    # Here the tag records will be added with names "tag_<name attribute parameterized and underscored>"
+    # eg a Tag(name: "Foo Bar") will be added as "tag_foo_bar"
+    generator.add_collection(Tag.all) { |t| t.name.parameterize.underscore }
+    
+    # Setup for tables with no primary key ID (eg joins tables), note must have an AR model class
+    generator.configure_name(CategoriesPosts, :category_id, :post_id)
+
+    # Create an author
+    author = generator.create(
+      :first_author, # name of the fixture
+      :user, # factory name
+      :with_comments,  # optional traits
+      first_name: "John", # optional attributes
+      last_name: "Doe"
+    )
+    
+    # Create 6 blog posts for the author - will be named "first_author_post_1", "first_author_post_2", etc
+    generator.create_multiple(:first_author_post, :post, 1, 6) do |post_index|
+      # from the block return the attributes for the factory
+      {
+        author: author, # or generator.get(:first_author)
+        text: Faker::Lorem.paragraphs(number: 3).join("\n\n"),
+        published_at: generator.make_fake_time(post_index.days.ago, (post_index - 1).days.ago)
+      }
+    end
+    
+    generator.create(
+      :category_to_post, 
+      :categories_post, 
+      category: generator.get(:category_12), # You can get a previously created record using its name
+      post: generator.get(:first_author_post_1)
+    )
+    
+    # ... etc
+  end
+end
+```
 
 
+To load the generated fixtures to your DB
 
-To load the fixtures to your DB
-
-    rake db:fixtures:load
+    rake db:fixtures:load FIXTURES_PATH=demos/fixtures
 
 *NOTE:* if you are adding something where the records have no primary 'id' key (eg on HABTM joins table) you must
 specify the columns to use when comparing records in the generator. Ie you must specify a set of attributes
