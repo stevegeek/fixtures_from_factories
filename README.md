@@ -40,11 +40,10 @@ Write a script (rake task or otherwise) which calls `GenerateSet` and gives it t
 a "generate" method. This class should be a subclass of `FixturesFromFactories::BaseBuilder` and should
 
 ```ruby
-::GenerateSet.call(
+FixturesFromFactories::GenerateSet.call(
   DemoFixturesBuilder, # The custom class which will setup the data
   fixtures_path, # path to the directory where the fixtures will be written, eg Rails.root.join("demos", "fixtures")
   time_cop_now: [Time.zone.now], # The time to freeze "now" to
-  database_name: "demo_fixtures_db", # The name of the database to use
   faker_seed: 42, # A seed value for faker to ensure consistent data between runs
   options: { # Any options to pass to the data builder class, available as `options` in the builder class
     # ...

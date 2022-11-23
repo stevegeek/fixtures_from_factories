@@ -5,16 +5,14 @@ require "faker"
 
 module FixturesFromFactories
   class FixtureGenerator
-    attr_reader :model_cache, :name_config, :database_name, :excluded_tables, :output_path
+    attr_reader :model_cache, :name_config, :excluded_tables, :output_path
 
     def initialize(
-      database_name,
       output_path,
       excluded_tables = FixturesFromFactories.configuration.excluded_tables
     )
       @model_cache = {}
       @name_config = {}
-      @database_name = database_name
       @output_path = output_path
       @excluded_tables = excluded_tables
     end
@@ -30,13 +28,12 @@ module FixturesFromFactories
     # Create a single named record using FactoryBot
     def create(name_or_prefix, factory_or_index, *bot_args)
       item_name, factory =
-        begin
-          if factory_or_index.is_a?(Symbol) || factory_or_index.is_a?(Array)
-            [name_or_prefix, factory_or_index]
-          else
-            ["#{name_or_prefix}_#{factory_or_index}".to_sym, bot_args.shift]
-          end
+        if factory_or_index.is_a?(Symbol) || factory_or_index.is_a?(Array)
+          [name_or_prefix, factory_or_index]
+        else
+          ["#{name_or_prefix}_#{factory_or_index}".to_sym, bot_args.shift]
         end
+
       Rails.logger.info "Creating record: #{item_name}"
       record = FactoryBot.create(*(Array.wrap(factory) + bot_args))
       if record.nil? || !record.persisted?
@@ -58,7 +55,7 @@ module FixturesFromFactories
       names.map.with_index do |config, index|
         parts = config.is_a?(Hash) ? config[:names] : config
         n_index = Array.wrap(parts).map { |s| s.to_s.parameterize.underscore }.join("_").to_sym
-        n = ("#{name_prefix}_#{n_index}").to_sym
+        n = "#{name_prefix}_#{n_index}".to_sym
         bot_args = block_given? ? yield(n, n_index, config, index) : items&.at(index)
         create(n, factory, bot_args)
       end
@@ -75,7 +72,7 @@ module FixturesFromFactories
 
     # Setup naming logic for a specific table
     def configure_name(model_klass, *attrs)
-      name_config[model_klass.name] = { klass: model_klass, attrs: attrs }
+      name_config[model_klass.name] = {klass: model_klass, attrs: attrs}
       name_config[model_klass.name] = ->(record, other) do
         attrs.all? { |attr| record.attributes[attr.to_s] == other[attr.to_s] }
       end
@@ -84,7 +81,7 @@ module FixturesFromFactories
     def add_record(item_name, record)
       raise "Adding nil record! #{item_name}" if record.nil?
       Rails.logger.info "Adding record #{item_name}..."
-      model_cache.merge!(Hash[item_name, cached_record(record)]) do |key|
+      model_cache.merge!({item_name => cached_record(record)}) do |key|
         raise "Duplicate key: #{key}"
       end
     end
@@ -130,15 +127,15 @@ module FixturesFromFactories
             record.id.to_s == other["id"]&.to_s
           else
             raise StandardError,
-                  "You maybe missing a call to `configure_name` for a table without a primary id key"
+              "You maybe missing a call to `configure_name` for a table without a primary id key"
           end
-        end,
+        end
       }
     end
 
     def class_from_table(table_name)
       table_name.classify.constantize
-    rescue StandardError
+    rescue
       nil
     end
 
@@ -150,13 +147,12 @@ module FixturesFromFactories
     def generate_record_name(needle, table_name, row_index)
       table_klass = class_from_table(table_name)
       generated_name =
-        begin
-          if table_klass
-            generate_record_name_with_model(needle, table_klass, row_index)
-          elsif row_index
-            [table_name, row_index.succ!].join("_")
-          end
+        if table_klass
+          generate_record_name_with_model(needle, table_klass, row_index)
+        elsif row_index
+          [table_name, row_index.succ!].join("_")
         end
+
       generated_name&.to_s
     end
 
@@ -242,7 +238,7 @@ module FixturesFromFactories
             association_type = attrs[attr_name_without_id + "_type"]
             association_type.presence || reflection.class_name
           end
-        other_name = get_record_name({ "id" => value }, related_klass_name.constantize.table_name)
+        other_name = get_record_name({"id" => value}, related_klass_name.constantize.table_name)
         if other_name
           hash[attr_name_without_id] = other_name.to_s
           return hash
@@ -257,8 +253,8 @@ module FixturesFromFactories
         .connection
         .select_all(
           "SELECT * FROM %<table>s" % {
-            table: ActiveRecord::Base.connection.quote_table_name(table_name),
-          },
+            table: ActiveRecord::Base.connection.quote_table_name(table_name)
+          }
         )
         .map do |row|
           row.each_with_object({}) do |(attr_name, value), hash|
@@ -267,7 +263,7 @@ module FixturesFromFactories
               attr_name_without_id = attr_name.sub(/_id$/, "")
               klass = class_from_table(attr_name_without_id)
               if klass
-                other_name = get_record_name({ "id" => value }, klass.table_name)
+                other_name = get_record_name({"id" => value}, klass.table_name)
 
                 # Note when there is no model for the table then retain '_id' attr name, as the fixtures setup code
                 # doesnt know about a relation named with the value of <attr_name_without_id> since there is no Model class
