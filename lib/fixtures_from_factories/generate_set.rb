@@ -36,7 +36,7 @@ module FixturesFromFactories
         if FixturesFromFactories.configuration.factory_bot_definition_file_paths
           FactoryBot.definition_file_paths = FixturesFromFactories.configuration.factory_bot_definition_file_paths
         end
-        FactoryBot.find_definitions
+        FactoryBot.reload
 
         # Prepare the fixture files
         FixtureGenerator.new(output_path).generate do

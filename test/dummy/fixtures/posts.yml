@@ -5,50 +5,50 @@
 first_author_post_1:
   title: Omnis accusantium reprehenderit.
   published_at: !ruby/object:ActiveSupport::TimeWithZone
-    utc: 2022-11-23 11:35:04.002808000 Z
+    utc: 2021-11-09 11:19:21.209781000 Z
     zone: &1 !ruby/object:ActiveSupport::TimeZone
       name: Etc/UTC
-    time: 2022-11-23 11:35:04.002808000 Z
+    time: 2021-11-09 11:19:21.209781000 Z
   user: first_author
 first_author_post_2:
   title: Reprehenderit exercitationem quia.
   published_at: !ruby/object:ActiveSupport::TimeWithZone
-    utc: 2022-11-22 11:24:51.690093000 Z
+    utc: 2021-11-08 11:09:08.897066000 Z
     zone: *1
-    time: 2022-11-22 11:24:51.690093000 Z
+    time: 2021-11-08 11:09:08.897066000 Z
   user: first_author
 first_author_post_3:
   title: Atque omnis nesciunt.
   published_at: !ruby/object:ActiveSupport::TimeWithZone
-    utc: 2022-11-21 05:36:46.916978000 Z
+    utc: 2021-11-07 05:21:04.123951000 Z
     zone: *1
-    time: 2022-11-21 05:36:46.916978000 Z
+    time: 2021-11-07 05:21:04.123951000 Z
   user: first_author
 first_author_post_4:
   title: Corporis in iure.
   published_at: !ruby/object:ActiveSupport::TimeWithZone
-    utc: 2022-11-20 01:09:30.175343000 Z
+    utc: 2021-11-06 00:53:47.382316000 Z
     zone: *1
-    time: 2022-11-20 01:09:30.175343000 Z
+    time: 2021-11-06 00:53:47.382316000 Z
   user: first_author
 first_author_post_5:
   title: Mollitia consectetur qui.
   published_at: !ruby/object:ActiveSupport::TimeWithZone
-    utc: 2022-11-19 11:43:07.168606000 Z
+    utc: 2021-11-05 11:27:24.375579000 Z
     zone: *1
-    time: 2022-11-19 11:43:07.168606000 Z
+    time: 2021-11-05 11:27:24.375579000 Z
   user: first_author
 first_author_post_6:
   title: Officiis qui voluptatem.
   published_at: !ruby/object:ActiveSupport::TimeWithZone
-    utc: 2022-11-18 06:43:13.531138000 Z
+    utc: 2021-11-04 06:27:30.738111000 Z
     zone: *1
-    time: 2022-11-18 06:43:13.531138000 Z
+    time: 2021-11-04 06:27:30.738111000 Z
   user: first_author
 second_author_post:
   title: My first post
   published_at: !ruby/object:ActiveSupport::TimeWithZone
-    utc: 2022-06-01 09:09:51.499324000 Z
+    utc: 2021-05-18 08:54:08.706297000 Z
     zone: *1
-    time: 2022-06-01 09:09:51.499324000 Z
+    time: 2021-05-18 08:54:08.706297000 Z
   user: second_author

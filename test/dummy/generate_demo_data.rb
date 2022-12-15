@@ -65,7 +65,7 @@ end
 ::FixturesFromFactories::GenerateSet.call(
   DemoFixturesBuilder, # The custom class which will setup the data
   Rails.root.join("fixtures"), # path to the directory where the fixtures will be written, eg Rails.root.join("demos", "fixtures")
-  time_cop_now: [Time.zone.now], # The time to freeze "now" to
+  time_cop_now: [2021, 11, 9, 12, 45, 0], # The time to freeze "now" to
   faker_seed: 42, # A seed value for faker to ensure consistent data between runs
   options: { # Any options to pass to the data builder class, available as `options` in the builder class
     # ...
