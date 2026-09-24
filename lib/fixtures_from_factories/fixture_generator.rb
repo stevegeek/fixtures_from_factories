@@ -133,10 +133,33 @@ module FixturesFromFactories
       }
     end
 
+    # `classify` misses tables such as "offers_settings" (model OffersSettings) or namespaced
+    # models, so fall back to a table_name match against all models.
     def class_from_table(table_name)
       table_name.classify.constantize
+    rescue NameError
+      model_class_for_table(table_name)
     rescue
       nil
+    end
+
+    # Only models whose name resolves back to the class, which skips Rails' generated HABTM join
+    # classes: a fixture file cannot refer to them.
+    def model_class_for_table(table_name)
+      eager_load_models!
+      ActiveRecord::Base.descendants.find do |klass|
+        !klass.abstract_class? && klass.base_class == klass && klass.table_name == table_name &&
+          klass.name&.safe_constantize == klass
+      end
+    rescue
+      nil
+    end
+
+    # ActiveRecord::Base.descendants only lists loaded models.
+    def eager_load_models!
+      return if @models_eager_loaded
+      Rails.application.eager_load! if defined?(Rails) && Rails.respond_to?(:application) && Rails.application
+      @models_eager_loaded = true
     end
 
     def get_record_name(needle, table_name)
@@ -192,10 +215,11 @@ module FixturesFromFactories
       begin
         fixtures =
           tables.inject([]) do |files, table_name|
-            rows = process_table(table_name)
+            table_klass, rows = process_table(table_name)
             next files if rows.empty?
 
             fixture_data = prepare_fixture_data(rows, table_name)
+            fixture_data = with_model_class_header(fixture_data, table_name, table_klass)
             write_fixture_file(fixture_data, table_name)
             files + [File.basename(fixture_file(table_name))]
           end
@@ -208,10 +232,23 @@ module FixturesFromFactories
     def process_table(table_name)
       table_klass = class_from_table(table_name)
       if table_klass && table_klass < ActiveRecord::Base
-        process_table_with_model(table_klass)
+        [table_klass, process_table_with_model(table_klass)]
       else
-        process_table_without_model(table_name)
+        [nil, process_table_without_model(table_name)]
       end
+    end
+
+    # The fixture loader also finds the model with `classify`, so tell it the model when that guess is wrong.
+    def with_model_class_header(fixture_data, table_name, table_klass)
+      return fixture_data unless table_klass
+      return fixture_data if naive_class_from_table(table_name) == table_klass
+      {"_fixture" => {"model_class" => table_klass.name}}.merge(fixture_data)
+    end
+
+    def naive_class_from_table(table_name)
+      table_name.classify.constantize
+    rescue
+      nil
     end
 
     def process_table_with_model(table_klass)
@@ -266,8 +303,9 @@ module FixturesFromFactories
                 other_name = get_record_name({"id" => value}, klass.table_name)
 
                 # Note when there is no model for the table then retain '_id' attr name, as the fixtures setup code
-                # doesnt know about a relation named with the value of <attr_name_without_id> since there is no Model class
-                hash[attr_name] = other_name ? other_name.to_s : value
+                # doesnt know about a relation named with the value of <attr_name_without_id> since there is no Model class.
+                # The loader does not resolve labels under an `_id` key, so write the label's stable id instead.
+                hash[attr_name] = other_name ? ActiveRecord::FixtureSet.identify(other_name) : value
               else
                 hash[attr_name] = value
               end

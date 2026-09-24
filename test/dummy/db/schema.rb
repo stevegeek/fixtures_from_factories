@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_23_100102) do
+ActiveRecord::Schema[7.0].define(version: 2026_09_24_000000) do
   create_table "categories", force: :cascade do |t|
     t.string "name"
   end
@@ -18,6 +18,16 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_23_100102) do
   create_table "categories_posts", id: false, force: :cascade do |t|
     t.integer "post_id", null: false
     t.integer "category_id", null: false
+  end
+
+  create_table "offers_settings", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_offers_settings_on_user_id"
+  end
+
+  create_table "post_reactions", id: false, force: :cascade do |t|
+    t.integer "post_id", null: false
+    t.string "emoji", null: false
   end
 
   create_table "posts", force: :cascade do |t|
@@ -36,9 +46,15 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_23_100102) do
     t.string "name"
   end
 
+  create_table "tags_users", id: false, force: :cascade do |t|
+    t.integer "tag_id", null: false
+    t.integer "user_id", null: false
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name"
   end
 
+  add_foreign_key "offers_settings", "users"
   add_foreign_key "posts", "users"
 end
