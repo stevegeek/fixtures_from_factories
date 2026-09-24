@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "./fixture_generator"
+require_relative "fixture_generator"
 require "timecop"
 
 module FixturesFromFactories

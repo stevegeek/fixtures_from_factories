@@ -31,7 +31,7 @@ module FixturesFromFactories
         if factory_or_index.is_a?(Symbol) || factory_or_index.is_a?(Array)
           [name_or_prefix, factory_or_index]
         else
-          ["#{name_or_prefix}_#{factory_or_index}".to_sym, bot_args.shift]
+          [:"#{name_or_prefix}_#{factory_or_index}", bot_args.shift]
         end
 
       Rails.logger.info "Creating record: #{item_name}"
@@ -55,7 +55,7 @@ module FixturesFromFactories
       names.map.with_index do |config, index|
         parts = config.is_a?(Hash) ? config[:names] : config
         n_index = Array.wrap(parts).map { |s| s.to_s.parameterize.underscore }.join("_").to_sym
-        n = "#{name_prefix}_#{n_index}".to_sym
+        n = :"#{name_prefix}_#{n_index}"
         bot_args = block_given? ? yield(n, n_index, config, index) : items&.at(index)
         create(n, factory, bot_args)
       end
@@ -63,11 +63,11 @@ module FixturesFromFactories
 
     # Get an existing record
     def get(name, index = nil)
-      model_cache.fetch(index.present? ? "#{name}_#{index}".to_sym : name)[:record]
+      model_cache.fetch(index.present? ? :"#{name}_#{index}" : name)[:record]
     end
 
     def generate_name_from_humanized(model, *parts)
-      "#{model}_#{parts.map { |s| s.to_s.parameterize.underscore }.join("_")}".to_sym
+      :"#{model}_#{parts.map { |s| s.to_s.parameterize.underscore }.join("_")}"
     end
 
     # Setup naming logic for a specific table
@@ -92,7 +92,7 @@ module FixturesFromFactories
       collection.find_in_batches do |group|
         group.each do |model|
           id = block_given? ? yield(model) : model.id.to_s
-          name = "#{c_name}_#{id}".to_sym
+          name = :"#{c_name}_#{id}"
           add_record(name, model)
           added_count += 1
         end
@@ -231,7 +231,7 @@ module FixturesFromFactories
       # but only if there is a AR model for the table
       attr_name_without_id = attr_name.sub(/_id$/, "")
       reflection = table_klass.reflect_on_association(attr_name_without_id)
-      if reflection&.kind_of?(ActiveRecord::Reflection::AssociationReflection) && value.present?
+      if reflection&.is_a?(ActiveRecord::Reflection::AssociationReflection) && value.present?
         related_klass_name =
           begin
             # Polymorphic

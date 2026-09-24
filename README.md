@@ -6,7 +6,7 @@ A tool to help build a set of Fixtures for your Rails app, using your test suite
 
 So you can build a full set of "fake data" for your development environment or for your QA/demo or test environments.
 
-Instead of manually maintaining a set of fixtures you can write a script which uses you existing Factories to 
+Instead of manually maintaining a set of fixtures you can write a script which uses your existing Factories to 
 build out the data set. Ie we generate fixture files from a script which uses FactoryBot factories to define the setup.
 
 `FixturesFromFactories` sets up a clean DB, runs your setup script, and then dumps records to fixture YAML files!
@@ -14,15 +14,11 @@ build out the data set. Ie we generate fixture files from a script which uses Fa
 Your Fixtures can then be very quickly loaded into the database to setup a new dev env with data to work with, or 
 reset a demo environment between demos to prospective clients.
 
-Features:
-- TODO
-
 ## Prior art (`fixture-builder` gem)
 
 The logic to dump the entities to YAML is based partly on [fixture-builder](https://github.com/rdy/fixture_builder).
 
 Big thanks to the many contributors to that project.
-
 
 ## Installation
 
@@ -37,7 +33,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
 ## Usage
 
 Write a script (rake task or otherwise) which calls `GenerateSet` and gives it the name of a class which exposes
-a "generate" method. This class should be a subclass of `FixturesFromFactories::BaseBuilder` and should
+a "generate" method. This class should be a subclass of `FixturesFromFactories::BaseBuilder`.
 
 ```ruby
 FixturesFromFactories::GenerateSet.call(
@@ -113,11 +109,21 @@ which uniquely identify each row (for example in a join table the pair of IDs in
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
+The gem is tested against Rails 7.2, 8.0 and 8.1 with [Appraisal](https://github.com/thoughtbot/appraisal):
+
+```bash
+bundle exec appraisal install               # install the gems for each Rails version
+bundle exec appraisal rake test             # run the tests against every Rails version
+bundle exec appraisal rails-8.1 rake test   # run the tests against one Rails version
+```
+
+After you change the `Appraisals` file, run `bundle exec appraisal generate` and commit the updated `gemfiles/`.
+
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/fixtures_from_factories.
+Bug reports and pull requests are welcome on GitHub at https://github.com/stevegeek/fixtures_from_factories.
 
 ## License
 
